@@ -16,7 +16,7 @@ import warnings
 warnings.simplefilter('ignore')
 from torch.utils.tensorboard import SummaryWriter
 
-from meldataset import build_dataloader
+#from meldataset import build_dataloader
 
 from Utils.ASR.models import ASRCNN
 from Utils.JDC.model import JDCNet
@@ -30,6 +30,9 @@ from Modules.slmadv import SLMAdversarialLoss
 from Modules.diffusion.sampler import DiffusionSampler, ADPM2Sampler, KarrasSchedule
 
 from optimizers import build_optimizer
+
+# NOTE: this has to come here otherwise we have segmentation fault
+from meldataset import build_dataloader
 
 # simple fix for dataparallel that allows access to class attributes
 class MyDataParallel(torch.nn.DataParallel):
@@ -51,6 +54,7 @@ logger.addHandler(handler)
 @click.command()
 @click.option('-p', '--config_path', default='Configs/config.yml', type=str)
 def main(config_path):
+
     config = yaml.safe_load(open(config_path))
     
     log_dir = config['log_dir']
@@ -789,4 +793,5 @@ def main(config_path):
                     yaml.dump(config, outfile, default_flow_style=True)
         
 if __name__=="__main__":
+
     main()
