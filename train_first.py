@@ -1,13 +1,12 @@
 import os
 import os.path as osp
-import re
-import sys
 import yaml
 import shutil
 import numpy as np
 import torch
 import click
 import warnings
+import argparse
 warnings.simplefilter('ignore')
 
 # load packages
@@ -18,8 +17,6 @@ import numpy as np
 import torch
 from torch import nn
 import torch.nn.functional as F
-import torchaudio
-import librosa
 
 from models import *
 from meldataset import build_dataloader
@@ -38,14 +35,13 @@ import logging
 from accelerate.logging import get_logger
 logger = get_logger(__name__, log_level="DEBUG")
 
-@click.command()
-@click.option('-p', '--config_path', default='Configs/config.yml', type=str)
-def main(config_path):
-    config = yaml.safe_load(open(config_path))
+
+def main(args):
+    config = yaml.safe_load(open(args.config_path))
 
     log_dir = config['log_dir']
     if not osp.exists(log_dir): os.makedirs(log_dir, exist_ok=True)
-    shutil.copy(config_path, osp.join(log_dir, osp.basename(config_path)))
+    shutil.copy(args.config_path, osp.join(log_dir, osp.basename(args.config_path)))
     ddp_kwargs = DistributedDataParallelKwargs(find_unused_parameters=True)
     accelerator = Accelerator(project_dir=log_dir, split_batches=True, kwargs_handlers=[ddp_kwargs])    
     if accelerator.is_main_process:
@@ -442,4 +438,7 @@ def main(config_path):
         
     
 if __name__=="__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config_path', type=str, help='location of the config.')
+    args = parser.parse_args()
+    main(args)
