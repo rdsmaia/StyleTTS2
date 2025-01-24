@@ -20,7 +20,7 @@ def transcribe_sentence(sent, lang, replace=False):
     except:
          raise ValueError(f'\nCheck on this text: {sent}\n') 
     if replace:
-        phonetic = replace_symbols(phonetic)
+        phonetic = [replace_symbols(p) for p in phonetic]
     return phonetic
 
 
@@ -28,7 +28,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--lang', default='ptBR', type=str, help='language to be used: prBR|enUS (default: ptBR).')
     parser.add_argument('--batch_size', default=128, type=int, help='batch size (default: 128)')
-    parser.add_argument('--replace_symbols', default=False, help='whether to replace some symbols or not (default: False).')
+    parser.add_argument('--replace_symbols', action='store_true', help='whether to replace some symbols or not (default: False).')
     parser.add_argument('--file1', required=True, type=str, help='original train.txt')
     parser.add_argument('--file2', required=True, type=str, help='modified train.txt')
 
