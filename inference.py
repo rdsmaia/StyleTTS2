@@ -70,10 +70,13 @@ class InferenceModel():
             audio = librosa.resample(audio, sr, 24000)
         mel_tensor = self.preprocess(audio).to(self.device)
 
+        if mel_tensor.size(-1) < 80:
+            mel_tensor = torch.nn.functional.pad(mel_tensor, (0, 80-mel_tensor.size(-1)), mode='constant', value=-5.0)
+
         with torch.no_grad():
             ref_s = self.model.style_encoder(mel_tensor.unsqueeze(1))
             ref_p = self.model.predictor_encoder(mel_tensor.unsqueeze(1))
-    
+
         return torch.cat([ref_s, ref_p], dim=1)
 
     def inference(self, text, ref_s, alpha = 0.0, beta = 0.5, diffusion_steps=5, embedding_scale=1):
@@ -84,7 +87,7 @@ class InferenceModel():
         tokens = self.textclenaer(ps)
         tokens.insert(0, 0)
         tokens = torch.LongTensor(tokens).to(self.device).unsqueeze(0)
-    
+
         with torch.no_grad():
             input_lengths = torch.LongTensor([tokens.shape[-1]]).to(self.device)
             text_mask = length_to_mask(input_lengths).to(self.device)
@@ -143,8 +146,7 @@ class InferenceModel():
                                      F0_pred,
                                      N_pred,
                                      ref.squeeze().unsqueeze(0))
-    
-        
+
         return out.squeeze()[..., :-50] # weird pulse at the end of the model, need to be fixed later
 
 def main(args):
